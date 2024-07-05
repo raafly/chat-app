@@ -1,17 +1,77 @@
 package restserver
 
-import "github.com/labstack/echo/v4"
+import (
+	"net/http"
 
-type AuthRest interface {
+	"github.com/labstack/echo/v4"
+	"github.com/raafly/realtime-app/helper"
+)
+
+type AuthHandler interface {
 	Register(c echo.Context) error
 	Login(c echo.Context) error
-	GetProfile(c echo.Context) error
+	// GetProfile(c echo.Context) error
 	GetContacts(c echo.Context) error
 	GetHistory(c echo.Context) error
 }
 
-type AuthRestImpl struct {
-	
+type AuthHandlerImpl struct {
+	serv AuthService
 }
 
-func NewAuthRest()
+func NewAuthHandler(serv AuthService) AuthHandler {
+	return &AuthHandlerImpl{serv: serv}
+}
+
+func (h *AuthHandlerImpl) Register(c echo.Context) error {
+	u := new(UserReq)
+	if err := c.Bind(u); err != nil {
+		return helper.ErrInternalServerError()
+	}
+
+	if err := h.serv.Create(u); err != nil {
+		return err
+	}
+	
+	return helper.NewCreated("succes created")
+}
+
+func (h *AuthHandlerImpl) Login(c echo.Context) error {
+	u := new(UserReq)
+	if err := c.Bind(u); err != nil {
+		return helper.ErrInternalServerError()
+	}
+
+	_, err := h.serv.Login(u)
+	if err != nil {
+		return err
+	}
+
+	return helper.NewCreated("succes log in")	
+}
+
+func (h *AuthHandlerImpl) GetHistory(c echo.Context) error {
+	userID := c.QueryParam("userID")
+	contactID := c.QueryParam("contactID")	
+	
+	resp, err := h.serv.GetHistory(userID, contactID)
+	if err != nil {
+		return err
+	}
+
+	return helper.NewContent(resp)
+}
+
+func (h *AuthHandlerImpl) GetContacts(c echo.Context) error {
+	userID := c.QueryParam("user_id")
+	if userID == "" {
+		return c.JSON(400, http.StatusBadRequest)
+	}
+
+	resp, err := h.serv.GetContacts(userID)
+	if err != nil {
+		return err 
+	}
+
+	return helper.NewContent(resp)
+}

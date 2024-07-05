@@ -1,13 +1,19 @@
 package restserver
 
+import "time"
+
 type UserReq struct {
 	Name     string `json:"name"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type ContactResp struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Message struct {
@@ -15,5 +21,5 @@ type Message struct {
 	SenderID   string `json:"sender_id"`
 	ReceiverID string `json:"receiver_id"`
 	Content    string `json:"content"`
-	Timestamp  int64  `json:"timestamp"`
+	CreatedAt time.Time `json:"created_at"`
 }
