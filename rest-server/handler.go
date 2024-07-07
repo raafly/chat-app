@@ -51,8 +51,8 @@ func (h *AuthHandlerImpl) Login(c echo.Context) error {
 }
 
 func (h *AuthHandlerImpl) GetHistory(c echo.Context) error {
-	userID := c.QueryParam("userID")
-	contactID := c.QueryParam("contactID")	
+	userID := c.QueryParam("user_id")
+	contactID := c.QueryParam("contact_id")	
 	
 	resp, err := h.serv.GetHistory(userID, contactID)
 	if err != nil {
