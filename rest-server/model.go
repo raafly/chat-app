@@ -1,13 +1,29 @@
 package restserver
 
+import "time"
+
 type User struct {
-	ID       string
-	Name     string
-	Password string
+	Telp      int64
+	Name      string
+	OTP       int
+	Bio       string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Contact struct {
-	ID     string
-	Name   string
-	UserID string
+	ID        string
+	UserID    int64
+	ContactID int64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Message struct {
+	ID         int
+	SenderID   int64
+	ReceiverID int64
+	Content    string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

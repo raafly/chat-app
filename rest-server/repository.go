@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/raafly/realtime-app/helper"
 )
 
 type AuthRepo interface {
-	Create(ctx context.Context, dto *UserReq) error
-	FindByEmail(ctx context.Context, name string) (*User, error)
-	GetProfile(ctx context.Context, id string) (*User, error)
-	GetContacts(ctx context.Context, id string) (*[]Contact, error)
+	Create(ctx context.Context, dto *UserDTO) error
+	FindByTelp(ctx context.Context, telp int64) (*User, error)
+	GetContacts(ctx context.Context, contactID string) (*[]Contact, error)
 	GetHistory(ctx context.Context, userIO string, contactID string) (*[]Message, error)
 }
 
@@ -23,19 +24,26 @@ func NewAuthRepo(db *sql.DB) AuthRepo {
 	return &AuthRepoImpl{db: db}
 }
 
-func (a *AuthRepoImpl) Create(ctx context.Context, dto *UserReq) error {
-	_, err := a.db.ExecContext(ctx, "insert into user(id, username, password) values(?, ?)", dto.Name, dto.Password)
+func (a *AuthRepoImpl) Create(ctx context.Context, dto *UserDTO) error {
+	trx, err := a.db.Begin()
 	if err != nil {
+		_ = trx.Rollback()
+		return helper.ErrInternalServerError()
+	}
+	
+	_, err = trx.ExecContext(ctx, "insert into users(telp, username) values(?, ?)", dto.Telp, dto.Name)
+	if err != nil {
+		_ = trx.Rollback()
 		return fmt.Errorf("err exec sql %w", err)
 	}
 
-	return nil
+	return trx.Commit()
 }
 
-func (a *AuthRepoImpl) FindByEmail(ctx context.Context, name string) (*User, error) {
+func (a *AuthRepoImpl) 	FindByTelp(ctx context.Context, telp int64) (*User, error) {
 	var user User
-	row := a.db.QueryRowContext(ctx, "select username, password from user where username = ?", name)
-	err := row.Scan(&user.ID, &user.Name, &user.Password)
+	row := a.db.QueryRowContext(ctx, "select telp, username, bio from users where telp = ?", telp)
+	err := row.Scan(&user.Telp, &user.Name, &user.Bio)
 	if err != nil {
 		return nil, fmt.Errorf("err scan row %w", err)
 	}
@@ -43,19 +51,8 @@ func (a *AuthRepoImpl) FindByEmail(ctx context.Context, name string) (*User, err
 	return &user, nil
 }
 
-func (a *AuthRepoImpl) GetProfile(ctx context.Context, id string) (*User, error) {
-	var user User
-	row := a.db.QueryRowContext(ctx, "select username, password from user where id = ?", id)
-	err := row.Scan(&user.ID, &user.Name, &user.Password)
-	if err != nil {
-		return nil, fmt.Errorf("err scan row %w", err)
-	}
-
-	return &user, nil
-}
-
-func (a *AuthRepoImpl) GetContacts(ctx context.Context, id string) (*[]Contact, error) {
-	rows, err := a.db.QueryContext(ctx, "select id, username, user_id from contact where user_id = ?", id)
+func (a *AuthRepoImpl) 	GetContacts(ctx context.Context, contactID string) (*[]Contact, error) {
+	rows, err := a.db.QueryContext(ctx, "select id, username, user_id from contacts where contact_id = ?", contactID)
 	if err != nil {
 		return nil, fmt.Errorf("err exec query %w", err)
 	}
@@ -65,7 +62,7 @@ func (a *AuthRepoImpl) GetContacts(ctx context.Context, id string) (*[]Contact, 
 	var contacts []Contact
 	for rows.Next() {
 		var contact Contact
-		err = rows.Scan(&contact.ID, &contact.Name, &contact.UserID)
+		err = rows.Scan(&contact.ID, &contact.UserID, &contact.ContactID)
 		if err != nil {
 			log.Printf("err scan %s", err)
 		}

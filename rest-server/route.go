@@ -2,7 +2,7 @@ package restserver
 
 import (
 	"database/sql"
-	"fmt"
+	_ "fmt"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -10,9 +10,9 @@ import (
 	"github.com/raafly/realtime-app/helper"
 )
 
-func middlewareJSON(next echo.HandlerFunc) echo.HandlerFunc {
+func MiddlewareJSON(next echo.HandlerFunc) echo.HandlerFunc {
 	v := validator.Validate{}
-	var messages []string
+	// var messages []string
 
 	return func(c echo.Context) error {
 		var data map[string]interface{}
@@ -20,21 +20,22 @@ func middlewareJSON(next echo.HandlerFunc) echo.HandlerFunc {
 		log.Printf("data %s", data)
 
 		if err := v.Struct(data); err != nil {
-			for _, e := range err.(validator.ValidationErrors) {
-				switch e.Tag() {
-				case "password":
-					messages = append(messages, fmt.Sprintf("%s: minimal 8 caracter", e.StructField()))
-				case "required":
-					message := fmt.Sprintf("%s: tidak boleh kosong", e.StructField())
-					messages = append(messages, message)
-				case "email":
-					message := fmt.Sprintf("%s: harus format email", e.StructField())
-					messages = append(messages, message)
-				case "min":
-					message := fmt.Sprintf("%s: minimal %s", e.StructField(), e.Param())
-					messages = append(messages, message)
-				}
-			}
+			// for _, e := range err.(validator.ValidationErrors) {
+			// 	switch e.Tag() {
+			// 	case "password":
+			// 		messages = append(messages, fmt.Sprintf("%s: minimal 8 caracter", e.StructField()))
+			// 	case "required":
+			// 		message := fmt.Sprintf("%s: tidak boleh kosong", e.StructField())
+			// 		messages = append(messages, message)
+			// 	case "email":
+			// 		message := fmt.Sprintf("%s: harus format email", e.StructField())
+			// 		messages = append(messages, message)
+			// 	case "min":
+			// 		message := fmt.Sprintf("%s: minimal %s", e.StructField(), e.Param())
+			// 		messages = append(messages, message)
+			// 	}
+			// }
+			return err
 		}
 
 		err := next(c)
@@ -53,8 +54,6 @@ func NewAuthRoute(db *sql.DB, e *echo.Echo) {
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(200, "working...")
 	})
-
-	auth.Use(middlewareJSON)
 
 	auth.POST("/register", handler.Register)
 	auth.POST("/login", handler.Login)

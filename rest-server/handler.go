@@ -26,34 +26,34 @@ func NewAuthHandler(serv AuthService) AuthHandler {
 func (h *AuthHandlerImpl) Register(c echo.Context) error {
 	u := new(UserReq)
 	if err := c.Bind(u); err != nil {
-		return helper.ErrInternalServerError()
+		return c.JSON(500, helper.ErrInternalServerError())
 	}
 
 	if err := h.serv.Create(u); err != nil {
-		return err
+		return c.JSON(400, err)
 	}
-	
-	return helper.NewCreated("succes created")
+
+	return c.JSON(201, helper.NewCreated("CREATED"))
 }
 
 func (h *AuthHandlerImpl) Login(c echo.Context) error {
 	u := new(UserReq)
 	if err := c.Bind(u); err != nil {
-		return helper.ErrInternalServerError()
+		return c.JSON(500, helper.ErrInternalServerError())
 	}
 
 	_, err := h.serv.Login(u)
 	if err != nil {
-		return err
+		return c.JSON(404, err)
 	}
 
-	return helper.NewCreated("succes log in")	
+	return c.JSON(200, helper.NewSucces("SUCCESS LOG IN"))
 }
 
 func (h *AuthHandlerImpl) GetHistory(c echo.Context) error {
 	userID := c.QueryParam("user_id")
-	contactID := c.QueryParam("contact_id")	
-	
+	contactID := c.QueryParam("contact_id")
+
 	resp, err := h.serv.GetHistory(userID, contactID)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (h *AuthHandlerImpl) GetContacts(c echo.Context) error {
 
 	resp, err := h.serv.GetContacts(userID)
 	if err != nil {
-		return err 
+		return err
 	}
 
 	return helper.NewContent(resp)
