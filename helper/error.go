@@ -1,71 +1,59 @@
 package helper
 
 type ErrResponse struct {
-	Code    int    `json:"code"`
 	Status  bool   `json:"status"`
+	Data    any    `json:"data"`
 	Message string `json:"message"`
-}
-
-type Response struct {
-	Code    int         `json:"code"`
-	Status  bool        `json:"status"`
-	Message string      `json:"message"`
-	Content interface{} `json:"data"`
 }
 
 func (e *ErrResponse) Error() string {
 	return e.Message
 }
 
-func (e *Response) Error() string {
-	return e.Message
-}
-
-func NewCreated(message string) error {
+func NewCreated(message string, data any) error {
 	return &ErrResponse{
-		Code:    201,
 		Status:  true,
 		Message: message,
+		Data: data,
 	}
 }
 
-func NewContent(data any) error {
-	return &Response{
-		Code: 200,
-		Status: true,
-		Message: "SUCCESS",
-		Content: data,
-	}
-}
-
-func NewSucces(message string) error {
+func NewContent(message string, data any) error {
 	return &ErrResponse{
-		Code:    200,
 		Status:  true,
 		Message: message,
+		Data: data,
 	}
 }
 
-func ErrBadRequest(message string) error {
+func NewSucces(message string, data any) error {
 	return &ErrResponse{
-		Code:    404,
-		Status:  false,
+		Status:  true,
 		Message: message,
+		Data: data,
 	}
 }
 
-func ErrNotFound(message string) error {
+func ErrBadRequest(message string, data any) error {
 	return &ErrResponse{
-		Code:    404,
 		Status:  false,
 		Message: message,
+		Data: data,
+	}
+}
+
+func ErrNotFound(message string, data any) error {
+	return &ErrResponse{
+		Status:  false,
+		Message: message,
+		Data: data,
 	}
 }
 
 func ErrInternalServerError() error {
 	return &ErrResponse{
-		Code:    500,
 		Status:  false,
 		Message: "INTERNAL SERVER ERROR",
+		Data: nil,
 	}
 }

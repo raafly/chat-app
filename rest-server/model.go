@@ -3,7 +3,7 @@ package restserver
 import "time"
 
 type User struct {
-	Telp      int64
+	Telp      string
 	Name      string
 	OTP       int
 	Bio       string

@@ -3,9 +3,12 @@ package restserver
 import "time"
 
 type UserDTO struct {
-	Telp      int64     `json:"telp"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
+	Telp string `json:"telp"`
+	Name string `json:"name"`
+}
+
+type OTP struct {
+	OTP int `json:"otp"`
 }
 
 type ContactDTO struct {

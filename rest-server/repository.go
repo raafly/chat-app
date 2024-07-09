@@ -10,8 +10,9 @@ import (
 )
 
 type AuthRepo interface {
-	Create(ctx context.Context, dto *UserDTO) error
-	FindByTelp(ctx context.Context, telp int64) (*User, error)
+	Create(ctx context.Context, dto *UserDTO) (string, error)
+	FindByTelp(ctx context.Context, telp string) (*User, error)
+	FindByOTP(ctx context.Context, telp, otp string) (string, error)
 	GetContacts(ctx context.Context, contactID string) (*[]Contact, error)
 	GetHistory(ctx context.Context, userIO string, contactID string) (*[]Message, error)
 }
@@ -21,34 +22,44 @@ type AuthRepoImpl struct {
 }
 
 func NewAuthRepo(db *sql.DB) AuthRepo {
-	return &AuthRepoImpl{db: db}
+	return &AuthRepoImpl{
+		db: db,
+	}
 }
 
-func (a *AuthRepoImpl) Create(ctx context.Context, dto *UserDTO) error {
-	trx, err := a.db.Begin()
+func (a *AuthRepoImpl) Create(ctx context.Context, dto *UserDTO) (string, error) {
+	otp := helper.RandomOTP()	
+
+	_, err := a.db.ExecContext(ctx, "insert into users(telp, otp) values(?, ?)", dto.Telp, otp)
 	if err != nil {
-		_ = trx.Rollback()
-		return helper.ErrInternalServerError()
-	}
-	
-	_, err = trx.ExecContext(ctx, "insert into users(telp, username) values(?, ?)", dto.Telp, dto.Name)
-	if err != nil {
-		_ = trx.Rollback()
-		return fmt.Errorf("err exec sql %w", err)
+		log.Println(err)
+		return "", helper.ErrBadRequest("duplicate nomer", nil)
 	}
 
-	return trx.Commit()
+	return otp, nil
 }
 
-func (a *AuthRepoImpl) 	FindByTelp(ctx context.Context, telp int64) (*User, error) {
+func (a *AuthRepoImpl) FindByTelp(ctx context.Context, telp string) (*User, error) {
 	var user User
 	row := a.db.QueryRowContext(ctx, "select telp, username, bio from users where telp = ?", telp)
 	err := row.Scan(&user.Telp, &user.Name, &user.Bio)
 	if err != nil {
+		log.Println(err)
 		return nil, fmt.Errorf("err scan row %w", err)
 	}
 
 	return &user, nil
+}
+
+func (a *AuthRepoImpl) FindByOTP(ctx context.Context, telp, otp string) (string, error) {
+	var result string
+	row := a.db.QueryRowContext(ctx, "select otp from users where telp = ?", telp)
+	err := row.Scan(&result)
+	if err != nil {
+		return "", helper.ErrNotFound("otp not found", nil)
+	}
+	
+	return result, nil
 }
 
 func (a *AuthRepoImpl) 	GetContacts(ctx context.Context, contactID string) (*[]Contact, error) {

@@ -9,8 +9,7 @@ import (
 
 type AuthHandler interface {
 	Register(c echo.Context) error
-	Login(c echo.Context) error
-	// GetProfile(c echo.Context) error
+	Vertify(c echo.Context) error
 	GetContacts(c echo.Context) error
 	GetHistory(c echo.Context) error
 }
@@ -24,30 +23,36 @@ func NewAuthHandler(serv AuthService) AuthHandler {
 }
 
 func (h *AuthHandlerImpl) Register(c echo.Context) error {
-	u := new(UserReq)
+	u := new(UserDTO)
 	if err := c.Bind(u); err != nil {
 		return c.JSON(500, helper.ErrInternalServerError())
 	}
 
-	if err := h.serv.Create(u); err != nil {
+	otp, err := h.serv.Create(u)
+	if err != nil {
+		return c.JSON(500, err)
+	}
+
+	return c.JSON(201, helper.NewCreated("CREATED", map[string]string{"otp": otp}))
+}
+
+func (h *AuthHandlerImpl) Vertify(c echo.Context) error {
+	telp := c.Request().Header.Get("telp")
+	if telp == "" {
+		return c.JSON(400, helper.ErrBadRequest("user not login", nil))
+	}
+
+	otp := new(OTP)
+	if err := c.Bind(otp); err != nil {
+		return c.JSON(500, helper.ErrInternalServerError())
+	}
+
+	err := h.serv.VertifyOTP(telp, otp.OTP)
+	if err != nil {
 		return c.JSON(400, err)
 	}
 
-	return c.JSON(201, helper.NewCreated("CREATED"))
-}
-
-func (h *AuthHandlerImpl) Login(c echo.Context) error {
-	u := new(UserReq)
-	if err := c.Bind(u); err != nil {
-		return c.JSON(500, helper.ErrInternalServerError())
-	}
-
-	_, err := h.serv.Login(u)
-	if err != nil {
-		return c.JSON(404, err)
-	}
-
-	return c.JSON(200, helper.NewSucces("SUCCESS LOG IN"))
+	return c.JSON(200, helper.NewSucces("SUCCESS LOG IN", nil))
 }
 
 func (h *AuthHandlerImpl) GetHistory(c echo.Context) error {
@@ -59,7 +64,7 @@ func (h *AuthHandlerImpl) GetHistory(c echo.Context) error {
 		return err
 	}
 
-	return helper.NewContent(resp)
+	return helper.NewContent("success", resp)
 }
 
 func (h *AuthHandlerImpl) GetContacts(c echo.Context) error {
@@ -73,5 +78,5 @@ func (h *AuthHandlerImpl) GetContacts(c echo.Context) error {
 		return err
 	}
 
-	return helper.NewContent(resp)
+	return helper.NewContent("success", resp)
 }

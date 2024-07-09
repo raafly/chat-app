@@ -1,0 +1,5 @@
+1. user memberikan nomer telp
+2. sistem menerima no telp dan mengirim otp
+3. user menerima kode otp 
+4. user memasukan otp dan sistem validasi
+5. panggil method create untuk membuat data

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "fmt"
 	"log"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -50,13 +51,25 @@ func NewAuthRoute(db *sql.DB, e *echo.Echo) {
 	serv := NewAuthService(repo, password)
 	handler := NewAuthHandler(serv)
 
-	auth := e.Group("/auth")
 	e.GET("/health", func(c echo.Context) error {
-		return c.String(200, "working...")
+		return c.JSON(200, map[string]string{
+			"status": "working",
+		})
 	})
 
+	e.POST("/register", func(c echo.Context) error {
+		u := new(UserDTO)
+		if err := c.Bind(u); err != nil {
+			log.Println(err)
+			return c.JSON(500, http.StatusInternalServerError)
+		}
+
+		return c.JSON(200, http.StatusOK)
+	})
+
+	auth := e.Group("/auth")
 	auth.POST("/register", handler.Register)
-	auth.POST("/login", handler.Login)
+	auth.POST("/vertify", handler.Vertify)
 	auth.GET("/contacts/:user_id", handler.GetContacts)
 	auth.GET("/users/:user_id/contacts/:contact_id/history", handler.GetHistory)
 }

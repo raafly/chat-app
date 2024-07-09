@@ -9,7 +9,7 @@ import (
 )
 
 func NewDB() *sql.DB {
-	db, err := sql.Open("mysql", "mysql:saturna@tcp(127.0.0.1)/realtime")
+	db, err := sql.Open("mysql", "root:saturna@tcp(127.0.0.1)/realtime")
 	if err != nil {
 		log.Printf("error start db %v", err)
 	}

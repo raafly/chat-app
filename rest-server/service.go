@@ -2,16 +2,15 @@ package restserver
 
 import (
 	"context"
-	"math/rand"
+	"log"
 	"time"
 
 	"github.com/raafly/realtime-app/helper"
 )
 
 type AuthService interface {
-	Create( dto *UserReq) error
-	Login( dto *UserReq) (int, error)
-	// GetProfile( id string) (*User, error)
+	Create(dto *UserDTO) (string, error)
+	VertifyOTP(telp string, otp int) error
 	GetContacts( id string) (*[]Contact, error)
 	GetHistory( userIO string, contactID string) (*[]Message, error)
 }
@@ -28,36 +27,33 @@ func NewAuthService(repo AuthRepo, password *helper.Password) AuthService {
 	}
 }
 
-func (s *AuthServiceImpl) Create(dto *UserReq) error {
+func (s *AuthServiceImpl) Create(dto *UserDTO) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	dto.Password = s.pasword.HashPassword(dto.Password)
-
-	err := s.repo.Create(ctx, dto)
+	
+	otp, err := s.repo.Create(ctx, dto)
 	if err != nil {
-		return helper.ErrInternalServerError()
+		return "", err
 	}
 
-	return nil
+	return otp, nil
 }
 
-func (s *AuthServiceImpl) Login(dto *UserReq) (int, error) {
+func (s *AuthServiceImpl) VertifyOTP(telp string, otp int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	resp, err := s.repo.FindByEmail(ctx, dto.Name)
+	log.Println(telp)
+	result, err := s.repo.FindByTelp(ctx, telp)
 	if err != nil {
-		return 0, helper.ErrNotFound("name not found")
+		return helper.ErrNotFound("telp not found", nil)
 	}
 
-	if s.pasword.ComparePassword(resp.Password, dto.Password) != nil {
-		return 0, helper.ErrBadRequest("name or password is incocrret")
+	if result.OTP != otp {
+		return nil
 	}
 
-	token := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-
-	return token.Int(), nil
+	return helper.ErrBadRequest("otp not match", nil)
 }
 
 func (s *AuthServiceImpl) GetContacts(id string) (*[]Contact, error) {
@@ -66,7 +62,7 @@ func (s *AuthServiceImpl) GetContacts(id string) (*[]Contact, error) {
 
 	resp, err := s.repo.GetContacts(ctx, id)
 	if err != nil {
-		return nil, helper.ErrNotFound("contact not found")
+		return nil, helper.ErrNotFound("contact not found", nil)
 	}
 
 	return resp, nil
@@ -78,7 +74,7 @@ func (s *AuthServiceImpl) GetHistory(userIO string, contactID string) (*[]Messag
 
 	resp, err := s.repo.GetHistory(ctx, userIO, contactID)
 	if err != nil {
-		return nil, helper.ErrNotFound("message not found")
+		return nil, helper.ErrNotFound("message not found", nil)
 	}
 
 	return resp, nil

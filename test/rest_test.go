@@ -1,5 +1,10 @@
 package test
 
+import (
+	"fmt"
+	"testing"
+)
+
 // import (
 // 	"testing"
 
@@ -10,5 +15,14 @@ package test
 // var conn = db.NewDB()
 
 // func TestRegister(t *testing.T) {
-// 	restserver.	
+// 	restserver.
 // }
+
+func TestOTP(t *testing.T) {
+	otp1, otp2 := 306136, 3061361
+	if otp1 != otp2 {
+		fmt.Println("tidak sama")
+	}
+
+	fmt.Println("sama")
+}
