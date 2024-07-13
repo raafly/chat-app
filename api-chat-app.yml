@@ -1,0 +1,131 @@
+openapi: '3.0.3'
+info:
+  title: API Chat App
+  version: '1.0'
+servers:
+  - url: https://api.saturna
+paths:
+  /register:
+    post:
+      summary: Add new account
+
+      requestBody:
+        description: create account
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                telp:
+                  type: string
+
+      responses:
+        '200':
+          description: OK
+          
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  otp:
+                    type: integer 
+        '400':
+          description: Bad request, invalid number
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: string
+  /vertify:
+    post:
+      summary: vertify otp
+      
+      parameters:
+        - schema:
+          in: header
+          name: telp
+          description: telp account user
+            
+      requestBody:
+        description: vertify otp
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verification_otp:
+                  type: integer
+      
+      responses:
+        '200':
+          description: success vertify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: string
+        '400':
+          description: Bad request, invalid otp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: string
+  /get_histories:
+    get:
+      summary: get history message
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id: 
+                  type: string
+                contact_id:
+                  type: string
+
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    properties:
+                      sender_id:
+                        type: string
+                      receiver_id: 
+                        type: string
+                      content:
+                        type: string
+
+
+
+
+
+        

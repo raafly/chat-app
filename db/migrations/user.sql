@@ -34,3 +34,9 @@ INSERT INTO users(telp, username) VALUES(088221482175, 'rafly');
 SELECT * FROM users WHERE telp = 088221482170 AND otp = 306136
 
 UPDATE users SET username = 'rafli' WHERE telp = 088221482170
+
+SELECT * FROM users
+
+INSERT INTO messages(sender_id, receiver_id, content) VALUES('088221482170', '088221482175', 'hi')
+
+SELECT * FROM messages WHERE sender_id = '088221482170' AND receiver_id = '088221482175'

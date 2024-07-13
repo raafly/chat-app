@@ -83,10 +83,11 @@ func (a *AuthRepoImpl) 	GetContacts(ctx context.Context, contactID string) (*[]C
 	return &contacts, nil
 }
 
-func (a *AuthRepoImpl) GetHistory(ctx context.Context, userIO string, contactID string) (*[]Message, error) {
-	rows, err := a.db.QueryContext(ctx, "select content from messages where user_id = ? and contact_id = ?", userIO, contactID)
+func (a *AuthRepoImpl) GetHistory(ctx context.Context, sender_id, receiver_id string) (*[]Message, error) {
+	rows, err := a.db.QueryContext(ctx, "select id, sender_id, receiver_id, content, created_at from messages where sender_id = ? and receiver_id = ?", sender_id, receiver_id)
 	if err != nil {
-		return nil, fmt.Errorf("err exec sql %w", err)
+		log.Printf("err db %s", err.Error())
+		return nil, helper.ErrNotFound("history nil", nil)
 	}
 
 	defer rows.Close()
@@ -97,6 +98,7 @@ func (a *AuthRepoImpl) GetHistory(ctx context.Context, userIO string, contactID 
 		err = rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.CreatedAt)
 		if err != nil {
 			log.Printf("err scan %s", err)
+			return nil, helper.ErrInternalServerError()
 		}
 		messages = append(messages, msg)
 	}

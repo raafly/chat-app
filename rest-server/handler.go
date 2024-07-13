@@ -56,15 +56,15 @@ func (h *AuthHandlerImpl) Vertify(c echo.Context) error {
 }
 
 func (h *AuthHandlerImpl) GetHistory(c echo.Context) error {
-	userID := c.QueryParam("user_id")
-	contactID := c.QueryParam("contact_id")
+	userID := c.Param("user_id")
+	contactID := c.Param("contact_id")
 
 	resp, err := h.serv.GetHistory(userID, contactID)
 	if err != nil {
-		return err
+		return c.JSON(404, err)
 	}
 
-	return helper.NewContent("success", resp)
+	return c.JSON(200, helper.NewContent("success", resp))
 }
 
 func (h *AuthHandlerImpl) GetContacts(c echo.Context) error {

@@ -68,13 +68,13 @@ func (s *AuthServiceImpl) GetContacts(id string) (*[]Contact, error) {
 	return resp, nil
 }
 
-func (s *AuthServiceImpl) GetHistory(userIO string, contactID string) (*[]Message, error) {
+func (s *AuthServiceImpl) GetHistory(sender_id, receiver_id string) (*[]Message, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	resp, err := s.repo.GetHistory(ctx, userIO, contactID)
+	resp, err := s.repo.GetHistory(ctx, sender_id, receiver_id)
 	if err != nil {
-		return nil, helper.ErrNotFound("message not found", nil)
+		return nil, err
 	}
 
 	return resp, nil

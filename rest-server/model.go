@@ -21,8 +21,8 @@ type Contact struct {
 
 type Message struct {
 	ID         int
-	SenderID   int64
-	ReceiverID int64
+	SenderID   string
+	ReceiverID string
 	Content    string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
